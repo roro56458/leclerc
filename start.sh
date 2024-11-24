@@ -8,8 +8,8 @@ read MODE
 if [ "$MODE" = "dev" ]; then
     echo "Mode développement sélectionné."
     
-    # Demander l'adresse IP du serveur
-    echo "Veuillez entrer l'adresse IP du serveur :"
+    # Demander l'adresse IP ou le nom de domaine du serveur
+    echo "Veuillez entrer l'adresse IP ou le nom de domaine du serveur :"
     read SERVER_IP
     
     # Cloner le dépôt Git et se déplacer dans le répertoire springboard
@@ -121,10 +121,17 @@ deployment "fr.openent:lool:\$loolVersion:deployment"
 EOL
     echo "Déploiements ajoutés dans build.gradle."
 
-    # Modifier l'adresse IP dans conf.properties
+    # Modifier l'adresse IP ou le nom de domaine dans conf.properties
     if [ -f "conf.properties" ]; then
-        echo "Modification de l'IP dans conf.properties avec l'adresse IP fournie : $SERVER_IP"
-        sed -i "s/192.168.99.100/$SERVER_IP/g" conf.properties
+        echo "Modification de l'IP dans conf.properties avec l'adresse IP ou domaine fourni : $SERVER_IP"
+
+        if [[ "$SERVER_IP" =~ \. ]]; then
+            # C'est une IP, on remplace uniquement l'IP
+            sed -i "s/192.168.99.100/$SERVER_IP/g" conf.properties
+        else
+            # C'est un nom de domaine, on remplace localhost:8090 par le nom de domaine sans le port
+            sed -i "s|localhost:8090|$SERVER_IP|g" conf.properties
+        fi
     else
         echo "Le fichier conf.properties n'a pas été trouvé."
     fi
